@@ -65,6 +65,16 @@ const createWindow = (): void => {
     event.reply("displayOutput", outputFile.toString("base64"));
   });
 
+  ipcMain.on("open-save-dialog", async (_, image: string) => {
+    try {
+      const { filePath } = await dialog.showSaveDialog({});
+
+      await fs.writeFile(`${filePath}.jpg`, image, "base64");
+    } catch (e) {
+      console.error(`Error downloading file: ${e}`);
+    }
+  });
+
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 

@@ -5,5 +5,7 @@ import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("electronAPI", {
   openFileDialog: () => ipcRenderer.send("open-file-dialog"),
+  openSaveDialog: (image: string) =>
+    ipcRenderer.send("open-save-dialog", image),
   on: (...args) => ipcRenderer.on(...args),
 });

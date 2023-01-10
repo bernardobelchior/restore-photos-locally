@@ -9,12 +9,8 @@ export function Main() {
   const [output, setOutput] = useState("");
 
   useEffect(() => {
-    window.electronAPI.on("displayInput", (_, message) =>
-      setInput(`data:image/jpg;base64,${message}`)
-    );
-    window.electronAPI.on("displayOutput", (_, message) =>
-      setOutput(`data:image/jpg;base64,${message}`)
-    );
+    window.electronAPI.on("displayInput", (_, message) => setInput(message));
+    window.electronAPI.on("displayOutput", (_, message) => setOutput(message));
   }, []);
 
   return (
@@ -23,6 +19,12 @@ export function Main() {
         <button onClick={() => window.electronAPI.openFileDialog()}>
           Upload
         </button>
+
+        {output ? (
+          <button onClick={() => window.electronAPI.openSaveDialog(output)}>
+            Download
+          </button>
+        ) : null}
       </div>
 
       {!input || !output ? (
@@ -39,8 +41,12 @@ export function Main() {
             height: "100%",
             marginTop: 24,
           }}
-          itemOne={<ReactCompareSliderImage src={input} />}
-          itemTwo={<ReactCompareSliderImage src={output} />}
+          itemOne={
+            <ReactCompareSliderImage src={`data:image/jpg;base64,${input}`} />
+          }
+          itemTwo={
+            <ReactCompareSliderImage src={`data:image/jpg;base64,${output}`} />
+          }
         />
       )}
     </>
