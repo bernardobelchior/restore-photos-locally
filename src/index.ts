@@ -42,7 +42,7 @@ const createWindow = (): void => {
     } catch (_) {
       const promise = new Promise<void>((resolve, reject) => {
         exec(
-          `python3 inference_gfpgan.py --bg_upsampler realesrgan -i ${filePath} -o results -v 1.3 -s 2`,
+          `python3 inference_gfpgan.py --bg_upsampler realesrgan -i '${filePath}' -o results -v 1.3 -s 2`,
           { cwd },
           (error, stdout, stderr) => {
             if (error) {
