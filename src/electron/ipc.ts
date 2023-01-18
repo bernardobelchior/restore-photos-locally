@@ -4,7 +4,7 @@ import path from "node:path";
 import { exec } from "node:child_process";
 import { isGfpganInstalled, isPythonVersionValid } from "./check-prerequisites";
 import { installPrerequisites } from "./install-gfpgan";
-import { getGfpganCwd } from "./directories";
+import { getGfpganCwd, getPythonDepsDir } from "./directories";
 
 export function setupIpc(ipcMain: IpcMain) {
   ipcMain.on("open-file-dialog", async (event) => {
@@ -27,7 +27,13 @@ export function setupIpc(ipcMain: IpcMain) {
       const promise = new Promise<void>((resolve, reject) => {
         exec(
           `python inference_gfpgan.py --bg_upsampler realesrgan -i '${filePath}' -o results -v 1.3 -s 2`,
-          { cwd },
+          {
+            cwd,
+            env: {
+              ...process.env,
+              PYTHONPATH: `${getPythonDepsDir()}:${process.env.PYTHONPATH}`,
+            },
+          },
           (error, stdout, stderr) => {
             if (error) {
               console.error(error);

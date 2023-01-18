@@ -5,11 +5,14 @@ import { download } from "electron-dl";
 import { BrowserWindow } from "electron";
 import unzipper from "unzipper";
 import {
+  getGfpganCwd,
   getGfpganInstallDir,
   getInstallDir,
+  getPythonDepsDir,
   GFPGAN_MODEL_PATH_SUFFIX,
   INSTALL_DIRECTORY,
 } from "./directories";
+import { execPromise } from "../utils/exec-promise";
 
 const GFPGAN_DOWNLOAD_LINK =
   "https://github.com/TencentARC/GFPGAN/archive/refs/tags/v1.3.8.zip";
@@ -17,7 +20,10 @@ const GFPGAN_DOWNLOAD_LINK =
 const MODEL_DOWNLOAD_LINK =
   "https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.3.pth";
 
+const PYTHON_DEPENDENCIES = ["basicsr", "facexlib", "realesrgan"];
+
 export async function installPrerequisites() {
+  const window = BrowserWindow.getFocusedWindow();
   const installDirectory = getInstallDir();
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), INSTALL_DIRECTORY));
 
@@ -29,33 +35,33 @@ export async function installPrerequisites() {
     fs.mkdirSync(installDirectory);
   }
 
-  await installGfpgan(tempDir);
+  await installGfpgan(window, tempDir);
 
-  // TODO: Install dependencies.
-
-  await installGfpganModel(getGfpganInstallDir());
+  await Promise.all([
+    installPythonDependencies(),
+    installGfpganModel(window, getGfpganInstallDir()),
+    installGfpganPythonRequirements(),
+  ]);
 }
 
 async function downloadGfpgan(
+  window: BrowserWindow,
   destination: string
 ): Promise<Electron.DownloadItem> {
-  return await download(
-    BrowserWindow.getFocusedWindow(),
-    GFPGAN_DOWNLOAD_LINK,
-    {
-      directory: destination,
-    }
-  );
+  return download(window, GFPGAN_DOWNLOAD_LINK, {
+    directory: destination,
+    overwrite: true,
+  });
 
   // FIXME: Handle errors
 }
 
-async function installGfpgan(tempDir: string) {
+async function installGfpgan(window: BrowserWindow, tempDir: string) {
   let gfpganZip;
   console.log("Downloading GFPGAN zip file to", tempDir);
 
   try {
-    gfpganZip = (await downloadGfpgan(tempDir)).getSavePath();
+    gfpganZip = (await downloadGfpgan(window, tempDir)).getSavePath();
   } catch (e) {
     console.error(e);
     throw e;
@@ -89,27 +95,70 @@ async function installGfpgan(tempDir: string) {
 }
 
 async function downloadGfpganModel(
+  window: BrowserWindow,
   destination: string
 ): Promise<Electron.DownloadItem> {
-  return await download(BrowserWindow.getFocusedWindow(), MODEL_DOWNLOAD_LINK, {
+  return download(window, MODEL_DOWNLOAD_LINK, {
     directory: destination,
+    overwrite: true,
   });
-
-  // FIXME: Handle errors
 }
 
-async function installGfpganModel(gfpganPath: string) {
+async function installGfpganModel(window: BrowserWindow, gfpganPath: string) {
   console.log("Installing v1.3 model...");
 
   try {
     const destination = path.join(gfpganPath, GFPGAN_MODEL_PATH_SUFFIX);
     console.log("Downloading GFPGAN model to", destination);
 
-    await downloadGfpganModel(destination);
+    const item = await downloadGfpganModel(window, destination);
+
+    console.log("GFPGAN model installed successfully.");
+
+    return item;
   } catch (e) {
     console.error(e);
     throw e;
   }
+}
 
-  console.log("GFPGAN model installed successfully.");
+async function installPythonDependencies() {
+  const pythonDepsDir = getPythonDepsDir();
+
+  console.log("Installing GFPGAN dependencies.");
+
+  await execPromise(
+    `pip install --target=${pythonDepsDir} ${PYTHON_DEPENDENCIES.join(" ")}`,
+    {
+      cwd: getInstallDir(),
+    }
+  );
+
+  console.log("GFPGAN dependencies installed successfully.");
+}
+
+async function installGfpganPythonRequirements() {
+  const pythonDepsDir = getPythonDepsDir();
+
+  console.log("Installing GFPGAN requirements.");
+
+  await execPromise(
+    `pip install --target=${pythonDepsDir} -r requirements.txt`,
+    {
+      cwd: getGfpganCwd(),
+    }
+  );
+
+  console.log("GFPGAN requirements installed successfully.");
+  console.log("Setting up GFPGAN.");
+
+  await execPromise(`python setup.py develop`, {
+    cwd: getGfpganCwd(),
+    env: {
+      ...process.env,
+      PYTHONPATH: `${pythonDepsDir}:${process.env.PYTHONPATH}`,
+    },
+  });
+
+  console.log("GFPGAN setup completed successfully.");
 }
