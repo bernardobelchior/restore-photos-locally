@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 function getPrerequisiteStatusString(status: null | boolean) {
-  if (status === null) {
+  if (status == null) {
     return "Verifying...";
   }
 
@@ -13,6 +13,9 @@ export function PrerequisitesModal() {
     python: boolean;
     gfpgan: boolean;
   }>(null);
+  const [prerequisitesInstallStatus, setPrerequisitesInstallStatus] = useState<
+    "idle" | "in-progress" | "done"
+  >("idle");
 
   useEffect(() => {
     window.electronAPI.checkPrerequisites();
@@ -24,6 +27,17 @@ export function PrerequisitesModal() {
     );
   }, []);
 
+  function installPrerequisites() {
+    window.electronAPI.on("install-prerequisites-over", () => {
+      setPrerequisitesInstallStatus("done");
+      setPrerequisitesStatus(null);
+      window.electronAPI.checkPrerequisites();
+    });
+
+    window.electronAPI.installPrerequisites();
+    setPrerequisitesInstallStatus("in-progress");
+  }
+
   return (
     <div>
       <h4>Prerequisites:</h4>
@@ -34,6 +48,17 @@ export function PrerequisitesModal() {
       <p>
         <span>GFPGAN: </span>
         <span>{getPrerequisiteStatusString(prerequisitesStatus?.gfpgan)}</span>
+        {prerequisitesStatus?.gfpgan === false ? (
+          <button
+            onClick={installPrerequisites}
+            disabled={prerequisitesInstallStatus === "in-progress"}
+            style={{ marginLeft: 4 }}
+          >
+            {prerequisitesInstallStatus === "in-progress"
+              ? "Installing..."
+              : "Install"}
+          </button>
+        ) : null}
       </p>
     </div>
   );

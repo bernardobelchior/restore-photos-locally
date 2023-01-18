@@ -9,4 +9,5 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.send("open-save-dialog", image),
   on: (...args) => ipcRenderer.on(...args),
   checkPrerequisites: () => ipcRenderer.send("check-prerequisites"),
+  installPrerequisites: () => ipcRenderer.send("install-prerequisites"),
 });

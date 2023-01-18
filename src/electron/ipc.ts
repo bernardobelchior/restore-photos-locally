@@ -3,10 +3,12 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { exec } from "node:child_process";
 import { isGfpganInstalled, isPythonVersionValid } from "./check-prerequisites";
+import { installGfpgan } from "./install-gfpgan";
+import { getGfpganCwd } from "./directories";
 
 export function setupIpc(ipcMain: IpcMain) {
   ipcMain.on("open-file-dialog", async (event) => {
-    const cwd = process.env.GFPGAN_DIR;
+    const cwd = getGfpganCwd();
     const { filePaths } = await dialog.showOpenDialog({
       properties: ["openFile"],
     });
@@ -58,13 +60,22 @@ export function setupIpc(ipcMain: IpcMain) {
   });
 
   ipcMain.on("check-prerequisites", async (event) => {
-    const cwd = process.env.GFPGAN_DIR;
     const isPythonVersionOk = isPythonVersionValid();
-    const isGFPGANVersionOk = isGfpganInstalled(cwd);
+    const isGFPGANVersionOk = isGfpganInstalled(getGfpganCwd());
 
     event.reply("check-prerequisites-over", {
       python: await isPythonVersionOk,
       gfpgan: await isGFPGANVersionOk,
     });
+  });
+
+  ipcMain.on("install-prerequisites", async (event) => {
+    try {
+      await installGfpgan();
+    } catch (e) {
+      console.error(e);
+    }
+
+    event.reply("install-prerequisites-over");
   });
 }
