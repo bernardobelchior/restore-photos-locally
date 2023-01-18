@@ -1,6 +1,5 @@
 import path from "path";
 import os from "os";
-import fs from "fs";
 
 export const INSTALL_DIRECTORY = "restore-photos";
 export const GFPGAN_DIRECTORY = "gfpgan";

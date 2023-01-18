@@ -1,5 +1,4 @@
 import { execPromise } from "../utils/exec-promise";
-import { getGfpganInstallDir } from "./directories";
 
 // Obtains major, minor and patch versions as capturing groups.
 const PYTHON_VERSION_REGEX = /Python ([0-9]+)\.([0-9]+)\.([0-9]+)/;

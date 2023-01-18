@@ -17,7 +17,7 @@ const GFPGAN_DOWNLOAD_LINK =
 const MODEL_DOWNLOAD_LINK =
   "https://github.com/TencentARC/GFPGAN/releases/download/v1.3.0/GFPGANv1.3.pth";
 
-export async function installGfpgan() {
+export async function installPrerequisites() {
   const installDirectory = getInstallDir();
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), INSTALL_DIRECTORY));
 
@@ -29,6 +29,28 @@ export async function installGfpgan() {
     fs.mkdirSync(installDirectory);
   }
 
+  await installGfpgan(tempDir);
+
+  // TODO: Install dependencies.
+
+  await installGfpganModel(getGfpganInstallDir());
+}
+
+async function downloadGfpgan(
+  destination: string
+): Promise<Electron.DownloadItem> {
+  return await download(
+    BrowserWindow.getFocusedWindow(),
+    GFPGAN_DOWNLOAD_LINK,
+    {
+      directory: destination,
+    }
+  );
+
+  // FIXME: Handle errors
+}
+
+async function installGfpgan(tempDir: string) {
   let gfpganZip;
   console.log("Downloading GFPGAN zip file to", tempDir);
 
@@ -64,35 +86,30 @@ export async function installGfpgan() {
   fs.renameSync(gfpganPath, getGfpganInstallDir());
 
   console.log("GFPGAN installed successfully.");
-
-  // TODO: Install dependencies.
-
-  console.log("Installing v1.3 model...");
-
-  // Possibly install this before the first conversion to speed it up
-  //try {
-  //  const destination = path.join(gfpganPath, GFPGAN_MODEL_PATH_SUFFIX);
-  //  console.log("Downloading GFPGAN model to", destination);
-
-  //  await downloadGfpgan(destination);
-  //} catch (e) {
-  //  console.error(e);
-  //  throw e;
-  //}
-
-  console.log("GFPGAN model installed successfully.");
 }
 
-async function downloadGfpgan(
+async function downloadGfpganModel(
   destination: string
 ): Promise<Electron.DownloadItem> {
-  return await download(
-    BrowserWindow.getFocusedWindow(),
-    GFPGAN_DOWNLOAD_LINK,
-    {
-      directory: destination,
-    }
-  );
+  return await download(BrowserWindow.getFocusedWindow(), MODEL_DOWNLOAD_LINK, {
+    directory: destination,
+  });
 
   // FIXME: Handle errors
+}
+
+async function installGfpganModel(gfpganPath: string) {
+  console.log("Installing v1.3 model...");
+
+  try {
+    const destination = path.join(gfpganPath, GFPGAN_MODEL_PATH_SUFFIX);
+    console.log("Downloading GFPGAN model to", destination);
+
+    await downloadGfpganModel(destination);
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+
+  console.log("GFPGAN model installed successfully.");
 }
