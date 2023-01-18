@@ -3,24 +3,26 @@
 Electron app that runs GFPGAN locally so your images never leave your computer. Inspired by [restoredphotos.io](https://www.restorephotos.io/).
 
 ⚠️️ **In Alpha** ⚠️
-Currently relies on GFPGAN being installed locally.
+Currently does not allow model selection (defaults to v1.3).
 
 ### Next steps
 
 - [ ] Reduce installation steps:
-  - [ ] Download GFPGAN v1.3 model on app startup
-  - [ ] Install GFPGAN automatically on app startup
-  - [ ] Install dependencies automatically
+  - [x] Download GFPGAN v1.3 model on app startup
+  - [x] Install GFPGAN automatically on app startup
+  - [x] Install dependencies automatically
   - [ ] Bundle Python
+- [ ] Allow the user to choose different GFPGAN models
+
+## Running application
+
+Run `npm i` on the repository's root directory and run `npm start`. This will open the
+application and check if everything is installed as expected.
+
+If you prefer to override GFPGAN with your own version, you can set the `GFPGAN_DIR` environment variable to point to the root of GFPGAN's repository. You can check how to install it [here](#install-gfpgan).
 
 ## Installation
 
 ### Install GFPGAN
 
 Follow the installation instructions [here](https://github.com/TencentARC/GFPGAN#installation) and download the v1.3 pre-trained model following [these instructions](https://github.com/TencentARC/GFPGAN#zap-quick-inference).
-
-### Running the electron application
-
-Run `npm i` on the root directory and run `GFPGAN_DIR=<gfpgan-dir> npm start`, where `<gfpgan-dir>` is the root of the GPFGAN repository.
-
-This will open the application and it is now usable.

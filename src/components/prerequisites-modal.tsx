@@ -8,7 +8,11 @@ function getPrerequisiteStatusString(status: null | boolean) {
   return status === true ? "✅ Installed" : "❌ Not installed";
 }
 
-export function PrerequisitesModal() {
+export function PrerequisitesModal({
+  onPrerequisitesOk,
+}: {
+  onPrerequisitesOk: () => void;
+}) {
   const [prerequisitesStatus, setPrerequisitesStatus] = useState<null | {
     python: boolean;
     gfpgan: boolean;
@@ -22,8 +26,15 @@ export function PrerequisitesModal() {
   }, []);
 
   useEffect(() => {
-    window.electronAPI.on("check-prerequisites-over", (_, { python, gfpgan }) =>
-      setPrerequisitesStatus({ python, gfpgan })
+    window.electronAPI.on(
+      "check-prerequisites-over",
+      (_, { python, gfpgan }) => {
+        setPrerequisitesStatus({ python, gfpgan });
+
+        if (python && gfpgan) {
+          onPrerequisitesOk();
+        }
+      }
     );
   }, []);
 

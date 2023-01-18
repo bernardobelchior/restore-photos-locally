@@ -7,6 +7,7 @@ import {
 export function ImageProcessor() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
+  const inProgress = input !== "" && output === "";
 
   useEffect(() => {
     window.electronAPI.on("displayInput", (_, message) => setInput(message));
@@ -16,8 +17,11 @@ export function ImageProcessor() {
   return (
     <>
       <div>
-        <button onClick={() => window.electronAPI.openFileDialog()}>
-          Upload
+        <button
+          onClick={() => window.electronAPI.openFileDialog()}
+          disabled={inProgress}
+        >
+          {inProgress ? "Restoring..." : "Upload"}
         </button>
 
         {output ? (
@@ -29,7 +33,7 @@ export function ImageProcessor() {
 
       {!input || !output ? (
         !input ? (
-          "Please upload a file"
+          "Please upload a file (.jpg or .png)"
         ) : (
           "Loading..."
         )
