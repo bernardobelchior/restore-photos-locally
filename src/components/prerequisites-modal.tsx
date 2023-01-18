@@ -22,30 +22,27 @@ export function PrerequisitesModal({
   >("idle");
 
   useEffect(() => {
-    window.electronAPI.checkPrerequisites();
+    window.ipc.checkPrerequisites();
   }, []);
 
   useEffect(() => {
-    window.electronAPI.on(
-      "check-prerequisites-over",
-      (_, { python, gfpgan }) => {
-        setPrerequisitesStatus({ python, gfpgan });
+    window.ipc.onCheckPrerequisitesOver((_, { python, gfpgan }) => {
+      setPrerequisitesStatus({ python, gfpgan });
 
-        if (python && gfpgan) {
-          onPrerequisitesOk();
-        }
+      if (python && gfpgan) {
+        onPrerequisitesOk();
       }
-    );
+    });
   }, []);
 
   function installPrerequisites() {
-    window.electronAPI.on("install-prerequisites-over", () => {
+    window.ipc.onInstallPrerequisitesOver(() => {
       setPrerequisitesInstallStatus("done");
       setPrerequisitesStatus(null);
-      window.electronAPI.checkPrerequisites();
+      window.ipc.checkPrerequisites();
     });
 
-    window.electronAPI.installPrerequisites();
+    window.ipc.installPrerequisites();
     setPrerequisitesInstallStatus("in-progress");
   }
 

@@ -10,22 +10,22 @@ export function ImageProcessor() {
   const inProgress = input !== "" && output === "";
 
   useEffect(() => {
-    window.electronAPI.on("displayInput", (_, message) => setInput(message));
-    window.electronAPI.on("displayOutput", (_, message) => setOutput(message));
+    window.ipc.onInputImageLoaded((_, message) => setInput(message));
+    window.ipc.onOutputImageLoaded((_, message) => setOutput(message));
   }, []);
 
   return (
     <>
       <div>
         <button
-          onClick={() => window.electronAPI.openFileDialog()}
+          onClick={() => window.ipc.openFileDialog()}
           disabled={inProgress}
         >
           {inProgress ? "Restoring..." : "Upload"}
         </button>
 
         {output ? (
-          <button onClick={() => window.electronAPI.openSaveDialog(output)}>
+          <button onClick={() => window.ipc.openSaveDialog(output)}>
             Download
           </button>
         ) : null}
