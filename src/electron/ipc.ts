@@ -1,4 +1,4 @@
-import { app, dialog, ipcMain, IpcMain, shell } from "electron";
+import { app, dialog, IpcMain, shell } from "electron";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { exec } from "node:child_process";
@@ -72,10 +72,14 @@ export function setupIpc(ipcMain: IpcMain) {
     console.log("Checking prerequisites.");
     console.log("GFPGAN CWD:", gfpganCwd);
 
-    event.reply("check-prerequisites-over", {
-      python: await isPythonVersionOk,
-      gfpgan: await isGFPGANVersionOk,
-    });
+    const [python, gfpgan] = await Promise.all([
+      isPythonVersionOk,
+      isGFPGANVersionOk,
+    ]);
+
+    console.log("Prerequisites check successful.");
+
+    event.reply("check-prerequisites-over", { python, gfpgan });
   });
 
   ipcMain.on("install-prerequisites", async (event) => {
@@ -87,8 +91,8 @@ export function setupIpc(ipcMain: IpcMain) {
 
     event.reply("install-prerequisites-over");
   });
-}
 
-ipcMain.on("show-logs", async () => {
-  shell.openPath(path.join(app.getPath("logs"), "main.log"));
-});
+  ipcMain.on("show-logs", async () => {
+    shell.openPath(path.join(app.getPath("logs"), "main.log"));
+  });
+}

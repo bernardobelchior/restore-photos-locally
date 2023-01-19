@@ -1,3 +1,4 @@
+import { spawnSync } from "child_process";
 import { execPromise } from "../utils/exec-promise";
 
 // Obtains major, minor and patch versions as capturing groups.
@@ -10,8 +11,15 @@ async function ensurePythonVersionIsValid() {
   let stdout;
   try {
     // TODO: Add timeout in case the python command hangs?
-    stdout = (await execPromise("python --version")).stdout;
+    const command = "python --version";
+    console.log(command);
+    const std = await execPromise(command);
+    stdout = std.stdout;
+
+    console.log(stdout);
+    console.error(std.stderr);
   } catch (e) {
+    console.error(e);
     throw Error(
       "Error running `python --version`. Make sure you have Python installed."
     );
@@ -43,7 +51,8 @@ export async function isPythonVersionValid() {
   try {
     await ensurePythonVersionIsValid();
     return true;
-  } catch (_) {
+  } catch (e) {
+    console.error(e);
     return false;
   }
 }
@@ -51,8 +60,14 @@ export async function isPythonVersionValid() {
 async function ensureGfpganInstalled(cwd: string) {
   try {
     // TODO: Add timeout in case the command hangs?
-    await execPromise("python inference_gfpgan.py --help", { cwd });
+    const command = "python inference_gfpgan.py --help";
+    console.log(command);
+    const { stdout, stderr } = await execPromise(command, { cwd });
+
+    console.log(stdout);
+    console.error(stderr);
   } catch (e) {
+    console.error(e);
     throw Error(
       "Error running `python inference_gfpgan.py --help`. Make sure you have GFPGAN installed."
     );
