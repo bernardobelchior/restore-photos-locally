@@ -1,4 +1,3 @@
-import { spawnSync } from "child_process";
 import { execPromise } from "../utils/exec-promise";
 
 // Obtains major, minor and patch versions as capturing groups.
