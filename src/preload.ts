@@ -23,6 +23,7 @@ const ipc = {
   installPrerequisites: () => ipcRenderer.send("install-prerequisites"),
   onInstallPrerequisitesOver: (listener: (event: IpcRendererEvent) => void) =>
     ipcRenderer.on("install-prerequisites-over", listener),
+  showLogs: () => ipcRenderer.send("show-logs"),
 };
 
 contextBridge.exposeInMainWorld("ipc", ipc);

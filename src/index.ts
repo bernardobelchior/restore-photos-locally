@@ -6,6 +6,11 @@ import { setupIpc } from "./electron/ipc";
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
+import log from "electron-log";
+log.catchErrors();
+Object.assign(console, log.functions);
+app.getPath("logs");
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
   app.quit();

@@ -65,6 +65,15 @@ export function PrerequisitesModal({
         />
       </p>
       <p>Once both are installed, you can start restoring photos.</p>
+      <p>
+        If something is not working, click the button below and copy its content
+        into a{" "}
+        <a href="https://github.com/bernardobelchior/restore-photos-locally/issues/new">
+          new GitHub issue
+        </a>
+        .
+      </p>
+      <button onClick={() => window.ipc.showLogs()}>Open logs</button>
     </div>
   );
 }

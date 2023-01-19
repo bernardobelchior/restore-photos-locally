@@ -1,4 +1,4 @@
-import { dialog, IpcMain } from "electron";
+import { app, dialog, ipcMain, IpcMain, shell } from "electron";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { exec } from "node:child_process";
@@ -88,3 +88,7 @@ export function setupIpc(ipcMain: IpcMain) {
     event.reply("install-prerequisites-over");
   });
 }
+
+ipcMain.on("show-logs", async () => {
+  shell.openPath(path.join(app.getPath("logs"), "main.log"));
+});
