@@ -51,23 +51,65 @@ export function PrerequisitesModal({
       <h4>Prerequisites:</h4>
       <p>
         <span>Python &gt;=3.7: </span>
-        <span>{getPrerequisiteStatusString(prerequisitesStatus?.python)}</span>
+        <PythonStatus
+          status={prerequisitesStatus?.python}
+          onCheck={window.ipc.checkPrerequisites}
+        />
       </p>
       <p>
         <span>GFPGAN: </span>
-        <span>{getPrerequisiteStatusString(prerequisitesStatus?.gfpgan)}</span>
-        {prerequisitesStatus?.gfpgan === false ? (
-          <button
-            onClick={installPrerequisites}
-            disabled={prerequisitesInstallStatus === "in-progress"}
-            style={{ marginLeft: 4 }}
-          >
-            {prerequisitesInstallStatus === "in-progress"
-              ? "Installing..."
-              : "Install"}
-          </button>
-        ) : null}
+        <GfpganStatus
+          status={prerequisitesStatus?.gfpgan}
+          installStatus={prerequisitesInstallStatus}
+          onInstallClick={installPrerequisites}
+        />
       </p>
+      <p>Once both are installed, you can start restoring photos.</p>
     </div>
+  );
+}
+
+function PythonStatus({
+  status,
+  onCheck,
+}: {
+  status: boolean | null;
+  onCheck: () => void;
+}) {
+  return (
+    <>
+      <span>{getPrerequisiteStatusString(status)}. </span>
+      {status === false ? (
+        <>
+          <a href="https://www.python.org/downloads/">Download Python here.</a>{" "}
+          <button onClick={onCheck}>Check installation</button>
+        </>
+      ) : null}
+    </>
+  );
+}
+
+function GfpganStatus({
+  status,
+  installStatus,
+  onInstallClick,
+}: {
+  status: boolean | null;
+  installStatus: "idle" | "in-progress" | "done";
+  onInstallClick: () => void;
+}) {
+  return (
+    <>
+      <span>{getPrerequisiteStatusString(status)}</span>
+      {status === false ? (
+        <button
+          onClick={onInstallClick}
+          disabled={installStatus === "in-progress"}
+          style={{ marginLeft: 4 }}
+        >
+          {installStatus === "in-progress" ? "Installing..." : "Install"}
+        </button>
+      ) : null}
+    </>
   );
 }
