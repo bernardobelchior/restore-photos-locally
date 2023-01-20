@@ -22,7 +22,7 @@ const MODEL_DOWNLOAD_LINK =
 
 const PYTHON_DEPENDENCIES = ["basicsr", "facexlib", "realesrgan"];
 
-export async function installPrerequisites() {
+export async function installPrerequisites(python: string) {
   const window = BrowserWindow.getFocusedWindow();
   const installDirectory = getInstallDir();
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), INSTALL_DIRECTORY));
@@ -38,10 +38,11 @@ export async function installPrerequisites() {
   await installGfpgan(window, tempDir);
 
   await Promise.all([
-    installPythonDependencies(),
+    installPythonDependencies(python),
     installGfpganModel(window, getGfpganInstallDir()),
-    installGfpganPythonRequirements(),
   ]);
+
+  await installGfpganPythonRequirements(python);
 }
 
 async function downloadGfpgan(
@@ -122,13 +123,15 @@ async function installGfpganModel(window: BrowserWindow, gfpganPath: string) {
   }
 }
 
-async function installPythonDependencies() {
+async function installPythonDependencies(python: string) {
   const pythonDepsDir = getPythonDepsDir();
 
   console.log("Installing GFPGAN dependencies.");
 
   await execPromise(
-    `pip install --target=${pythonDepsDir} ${PYTHON_DEPENDENCIES.join(" ")}`,
+    `${python} -m pip install --target=${pythonDepsDir} ${PYTHON_DEPENDENCIES.join(
+      " "
+    )}`,
     {
       cwd: getInstallDir(),
     }
@@ -137,13 +140,13 @@ async function installPythonDependencies() {
   console.log("GFPGAN dependencies installed successfully.");
 }
 
-async function installGfpganPythonRequirements() {
+async function installGfpganPythonRequirements(python: string) {
   const pythonDepsDir = getPythonDepsDir();
 
   console.log("Installing GFPGAN requirements.");
 
   await execPromise(
-    `pip install --target=${pythonDepsDir} -r requirements.txt`,
+    `${python} -m pip install --target=${pythonDepsDir} -r requirements.txt`,
     {
       cwd: getGfpganCwd(),
     }
@@ -152,7 +155,7 @@ async function installGfpganPythonRequirements() {
   console.log("GFPGAN requirements installed successfully.");
   console.log("Setting up GFPGAN.");
 
-  await execPromise(`python setup.py develop`, {
+  await execPromise(`${python} setup.py develop --prefix ${pythonDepsDir}`, {
     cwd: getGfpganCwd(),
     env: {
       ...process.env,

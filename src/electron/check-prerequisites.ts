@@ -6,11 +6,11 @@ const PYTHON_VERSION_REGEX = /Python ([0-9]+)\.([0-9]+)\.([0-9]+)/;
 /**
  * Ensures Python version is >=3.7.
  */
-async function ensurePythonVersionIsValid() {
+async function ensurePythonVersionIsValid(python: string) {
   let stdout;
   try {
     // TODO: Add timeout in case the python command hangs?
-    const command = "python --version";
+    const command = `${python} --version`;
     console.log(command);
     const std = await execPromise(command);
     stdout = std.stdout;
@@ -20,7 +20,7 @@ async function ensurePythonVersionIsValid() {
   } catch (e) {
     console.error(e);
     throw Error(
-      "Error running `python --version`. Make sure you have Python installed."
+      `Error running '${python} --version'. Make sure you have Python installed.`
     );
   }
 
@@ -46,9 +46,9 @@ async function ensurePythonVersionIsValid() {
   }
 }
 
-export async function isPythonVersionValid() {
+export async function isPythonVersionValid(python: string) {
   try {
-    await ensurePythonVersionIsValid();
+    await ensurePythonVersionIsValid(python);
     return true;
   } catch (e) {
     console.error(e);
@@ -56,10 +56,10 @@ export async function isPythonVersionValid() {
   }
 }
 
-async function ensureGfpganInstalled(cwd: string) {
+async function ensureGfpganInstalled(python: string, cwd: string) {
   try {
     // TODO: Add timeout in case the command hangs?
-    const command = "python inference_gfpgan.py --help";
+    const command = `${python} inference_gfpgan.py --help`;
     console.log(command);
     const { stdout, stderr } = await execPromise(command, { cwd });
 
@@ -68,14 +68,14 @@ async function ensureGfpganInstalled(cwd: string) {
   } catch (e) {
     console.error(e);
     throw Error(
-      "Error running `python inference_gfpgan.py --help`. Make sure you have GFPGAN installed."
+      `Error running '${python} inference_gfpgan.py --help'. Make sure you have GFPGAN installed.`
     );
   }
 }
 
-export async function isGfpganInstalled(cwd: string) {
+export async function isGfpganInstalled(python: string, cwd: string) {
   try {
-    await ensureGfpganInstalled(cwd);
+    await ensureGfpganInstalled(python, cwd);
     return true;
   } catch (_) {
     return false;

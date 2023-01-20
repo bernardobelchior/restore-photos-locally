@@ -5,9 +5,11 @@ import { exec } from "node:child_process";
 import { isGfpganInstalled, isPythonVersionValid } from "./check-prerequisites";
 import { installPrerequisites } from "./install-gfpgan";
 import { getGfpganCwd, getPythonDepsDir } from "./directories";
+import { findPythonPath } from "./find-python-path";
 
 export function setupIpc(ipcMain: IpcMain) {
   ipcMain.on("open-file-dialog", async (event) => {
+    const python = await findPythonPath();
     const cwd = getGfpganCwd();
     const { filePaths } = await dialog.showOpenDialog({
       properties: ["openFile"],
@@ -26,11 +28,10 @@ export function setupIpc(ipcMain: IpcMain) {
     } catch (_) {
       const promise = new Promise<void>((resolve, reject) => {
         exec(
-          `python inference_gfpgan.py --bg_upsampler realesrgan -i '${filePath}' -o results -v 1.3 -s 2`,
+          `${python} inference_gfpgan.py --bg_upsampler realesrgan -i '${filePath}' -o results -v 1.3 -s 2`,
           {
             cwd,
             env: {
-              ...process.env,
               PYTHONPATH: `${getPythonDepsDir()}:${process.env.PYTHONPATH}`,
             },
           },
@@ -66,25 +67,40 @@ export function setupIpc(ipcMain: IpcMain) {
   });
 
   ipcMain.on("check-prerequisites", async (event) => {
-    const gfpganCwd = getGfpganCwd();
-    const isPythonVersionOk = isPythonVersionValid();
-    const isGFPGANVersionOk = isGfpganInstalled(gfpganCwd);
-    console.log("Checking prerequisites.");
-    console.log("GFPGAN CWD:", gfpganCwd);
+    try {
+      const python = await findPythonPath();
+      const gfpganCwd = getGfpganCwd();
+      const isPythonVersionOk = isPythonVersionValid(python);
+      const isGFPGANVersionOk = isGfpganInstalled(python, gfpganCwd);
+      console.log("Checking prerequisites.");
+      console.log("Python:", python);
+      console.log("GFPGAN CWD:", gfpganCwd);
 
-    const [python, gfpgan] = await Promise.all([
-      isPythonVersionOk,
-      isGFPGANVersionOk,
-    ]);
+      const [pythonOk, gfpganOk] = await Promise.all([
+        isPythonVersionOk,
+        isGFPGANVersionOk,
+      ]);
 
-    console.log("Prerequisites check successful.");
+      console.log("Prerequisites check successful.");
 
-    event.reply("check-prerequisites-over", { python, gfpgan });
+      event.reply("check-prerequisites-over", {
+        python: pythonOk,
+        gfpgan: gfpganOk,
+      });
+    } catch (e) {
+      console.error(e);
+
+      event.reply("check-prerequisites-over", {
+        python: false,
+        gfpgan: false,
+      });
+    }
   });
 
   ipcMain.on("install-prerequisites", async (event) => {
+    const python = await findPythonPath();
     try {
-      await installPrerequisites();
+      await installPrerequisites(python);
     } catch (e) {
       console.error(e);
     }
